@@ -72,7 +72,7 @@ Contributions are welcome! Please fork this repository and submit pull requests.
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the GNU General Public License - see the [LICENSE](LICENSE) file for details.
 
 ---
 
