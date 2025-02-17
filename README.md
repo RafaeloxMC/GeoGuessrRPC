@@ -68,7 +68,7 @@ GeoGuessr Discord RPC is a project that integrates GeoGuessr with Discord Rich P
 
 ## 🤝 Contributing
 
-Contributions are welcome! Please fork this repository and submit pull requests.
+Contributions are welcome! Please fork this repository and submit pull requests. If you have any problems, feel free to open an issue!
 
 ## 📄 License
 
