@@ -20,7 +20,7 @@ GeoGuessr Discord RPC is a project that integrates GeoGuessr with Discord Rich P
 1. **Clone the repository**:
 
     ```sh
-    git clone https://github.com/yourusername/GeoGuessrRPC.git
+    git clone https://github.com/RafaeloxMC/GeoGuessrRPC.git
     cd GeoGuessrRPC
     ```
 
@@ -72,7 +72,7 @@ Contributions are welcome! Please fork this repository and submit pull requests.
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the GNU General Public License - see the [LICENSE](LICENSE) file for details.
 
 ---
 
