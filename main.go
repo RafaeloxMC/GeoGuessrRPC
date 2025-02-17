@@ -26,12 +26,12 @@ type GameMode struct {
 	Playing        bool   `json:"playing"`
 }
 
-func setDiscordRPC(mode GameMode, err error, startTime *time.Time) {
+func setDiscordRPC(mode GameMode, startTime *time.Time) {
 	state := "In the menus"
 	if mode.Playing {
 		state = "Playing"
 	}
-	err = client.SetActivity(client.Activity{
+	err := client.SetActivity(client.Activity{
 		State:      state,
 		Details:    mode.Mode,
 		LargeImage: "large",
@@ -206,7 +206,7 @@ func urlHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	setDiscordRPC(mode, nil, startTime)
+	setDiscordRPC(mode, startTime)
 }
 
 func main() {
