@@ -1,0 +1,10 @@
+{
+	"manifest_version": 3,
+	"name": "GeoGuessr Discord RPC",
+	"version": "1.0",
+	"permissions": ["activeTab", "scripting"],
+	"background": {
+		"service_worker": "background.js"
+	},
+	"host_permissions": ["https://*/*", "http://*/*"]
+}
