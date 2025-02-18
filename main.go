@@ -26,7 +26,12 @@ type GameMode struct {
 	Playing        bool   `json:"playing"`
 }
 
+var currentMode GameMode
+
 func setDiscordRPC(mode GameMode, startTime *time.Time) {
+	if currentMode != (GameMode{}) && mode == currentMode {
+		return
+	}
 	state := "In the menus"
 	if mode.Playing {
 		state = "Playing"
@@ -48,6 +53,7 @@ func setDiscordRPC(mode GameMode, startTime *time.Time) {
 	} else {
 		log.Println("Discord RPC updated")
 	}
+	currentMode = mode
 }
 
 func extractGameMode(url string) GameMode {
@@ -101,6 +107,21 @@ func extractGameMode(url string) GameMode {
 			Mode:           "Team Duels",
 			SmallImage:     "rankedteams",
 			SmallImageText: "Team Duels (Ranked)",
+			Playing:        true,
+		}
+	case "teams":
+		if subPath != "" {
+			return GameMode{
+				Mode:           "Team Duels Game",
+				SmallImage:     "teamduels",
+				SmallImageText: "Team Duels Game",
+				Playing:        true,
+			}
+		}
+		return GameMode{
+			Mode:           "Team Duels",
+			SmallImage:     "teamduels",
+			SmallImageText: "Team Duels",
 			Playing:        true,
 		}
 	case "multiplayer":
