@@ -59,7 +59,7 @@ GeoGuessr Discord RPC is a project that integrates GeoGuessr with Discord Rich P
 
 -   The Go server listens for HTTP POST requests from the Chrome extension.
 -   It parses the URL and determines the current game mode.
--   It updates the Discord Rich Presence using the [`rich-go`](https://github.com/hugolgst/rich-go/) library.
+-   It updates the Discord Rich Presence using the [`richer-go`](https://github.com/RafaeloxMC/richer-go/) library.
 
 ### Chrome Extension (`extension/background.js`)
 

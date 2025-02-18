@@ -8,11 +8,12 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/hugolgst/rich-go/client"
+	"github.com/RafaeloxMC/richer-go/client"
 )
 
 var startTime *time.Time = func() *time.Time { now := time.Now(); return &now }()
 var playing bool = false
+var loggedin bool = false
 
 type URLData struct {
 	URL    string `json:"url"`
@@ -48,8 +49,18 @@ func setDiscordRPC(mode GameMode, startTime *time.Time) {
 		},
 	})
 
-	if err != nil {
-		panic(err)
+	if err != nil || !loggedin {
+		log.Printf("Error updating Discord RPC: %v", err.Error())
+		log.Println("Attempting to re-login")
+		logout()
+		time.Sleep(500 * time.Millisecond)
+		login_err := login()
+		if login_err != nil {
+			log.Printf("Failed to re-login: %v", login_err.Error())
+			return
+		}
+		time.Sleep(1 * time.Second)
+		setDiscordRPC(mode, startTime)
 	} else {
 		log.Println("Discord RPC updated")
 	}
@@ -74,9 +85,6 @@ func extractGameMode(url string) GameMode {
 	if len(matches) > 2 {
 		subPath = matches[2]
 	}
-
-	fmt.Printf("Main Path: %s\n", mainPath)
-	fmt.Printf("Sub Path: %s\n", subPath)
 
 	switch mainPath {
 	case "duels":
@@ -199,8 +207,6 @@ func urlHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fmt.Printf("Received data: %+v\n", data)
-
 	if data.Action == "close" {
 		playing = false
 		client.Logout()
@@ -210,24 +216,45 @@ func urlHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	mode := extractGameMode(data.URL)
-	log.Printf("Received URL: %s\n", data.URL)
-	log.Printf("Inferred Game Mode: %s\n", mode.Mode)
 
 	w.WriteHeader(http.StatusOK)
-	fmt.Fprintf(w, "URL received. Game Mode: %s", mode.Mode)
+
+	if !loggedin {
+		login_err := login()
+		if login_err != nil {
+			log.Printf("Failed to login: %v", login_err.Error())
+			return
+		}
+	}
 
 	if !playing {
 		playing = true
 		startTime = func() *time.Time { now := time.Now(); return &now }()
-		err := client.Login("1341072184113762305")
-		if err != nil {
-			panic(err)
-		} else {
-			log.Println("Logged in to Discord")
-		}
 	}
 
 	setDiscordRPC(mode, startTime)
+}
+
+func login() error {
+	err := client.Login("1341072184113762305")
+	if err != nil {
+		loggedin = false
+		return err
+	} else {
+		log.Println("Logged in to Discord")
+		loggedin = true
+	}
+	return nil
+}
+
+func logout() {
+	if loggedin {
+		client.Logout()
+		log.Println("Logged out of Discord")
+		loggedin = false
+	} else {
+		log.Println("Already logged out of Discord")
+	}
 }
 
 func main() {
