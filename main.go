@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"flag"
 	"fmt"
 	"log"
 	"net/http"
@@ -14,6 +15,7 @@ import (
 var startTime *time.Time = func() *time.Time { now := time.Now(); return &now }()
 var playing bool = false
 var loggedin bool = false
+var debug *bool = nil
 
 type URLData struct {
 	URL    string `json:"url"`
@@ -27,10 +29,17 @@ type GameMode struct {
 	Playing        bool   `json:"playing"`
 }
 
+func logDebug(log string) {
+	if *debug {
+		fmt.Println("[DEBUG] " + log)
+	}
+}
+
 var currentMode GameMode
 
 func setDiscordRPC(mode GameMode, startTime *time.Time) {
 	if currentMode != (GameMode{}) && mode == currentMode {
+		log.Println("Discord RPC already up to date")
 		return
 	}
 	state := "In the menus"
@@ -65,6 +74,7 @@ func setDiscordRPC(mode GameMode, startTime *time.Time) {
 		log.Println("Discord RPC updated")
 	}
 	currentMode = mode
+	logDebug(fmt.Sprintf("Current mode: %s", mode.Mode))
 }
 
 func extractGameMode(url string) GameMode {
@@ -86,7 +96,36 @@ func extractGameMode(url string) GameMode {
 		subPath = matches[2]
 	}
 
+	logDebug(fmt.Sprintf("Main path: %s, Sub path: %s", mainPath, subPath))
+
 	switch mainPath {
+	case "singleplayer":
+		if subPath == "game" {
+			return GameMode{
+				Mode:           "Singleplayer Game",
+				SmallImage:     "singleplayer",
+				SmallImageText: "Singleplayer Game",
+				Playing:        true,
+			}
+		}
+	case "game":
+		{
+			return GameMode{
+				Mode:           "Singleplayer Game",
+				SmallImage:     "singleplayer",
+				SmallImageText: "Singleplayer Game",
+				Playing:        true,
+			}
+		}
+	case "maps":
+		{
+			return GameMode{
+				Mode:           "Selecting a map",
+				SmallImage:     "",
+				SmallImageText: "",
+				Playing:        false,
+			}
+		}
 	case "duels":
 		if subPath != "" {
 			return GameMode{
@@ -193,21 +232,30 @@ func extractGameMode(url string) GameMode {
 			Playing:        false,
 		}
 	}
+	return GameMode{
+		Mode:           "Not in a game",
+		SmallImage:     "",
+		SmallImageText: "",
+		Playing:        false,
+	}
 }
 
 func urlHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
+		logDebug("Invalid request method")
 		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
 		return
 	}
 
 	var data URLData
 	if err := json.NewDecoder(r.Body).Decode(&data); err != nil {
+		logDebug("Failed to parse request body")
 		http.Error(w, "Failed to parse request body", http.StatusBadRequest)
 		return
 	}
 
 	if data.Action == "close" {
+		logDebug("Game closed, clearing Discord RPC")
 		playing = false
 		client.Logout()
 		w.WriteHeader(http.StatusOK)
@@ -230,12 +278,14 @@ func urlHandler(w http.ResponseWriter, r *http.Request) {
 	if !playing {
 		playing = true
 		startTime = func() *time.Time { now := time.Now(); return &now }()
+		logDebug("Game started, now playing")
 	}
 
 	setDiscordRPC(mode, startTime)
 }
 
 func login() error {
+	logDebug("Sending login request to Discord")
 	err := client.Login("1341072184113762305")
 	if err != nil {
 		loggedin = false
@@ -258,10 +308,18 @@ func logout() {
 }
 
 func main() {
+	debug = flag.Bool("debug", false, "Enable debug mode")
+	flag.Parse()
+
+	if *debug {
+		logDebug("--------------------- Debug mode enabled ---------------------")
+	}
+
 	http.HandleFunc("/", urlHandler)
 
 	port := "7777"
-	log.Printf("Server is running on port %s\n", port)
+	logDebug(fmt.Sprintf("Server is running on port %s", port))
+	log.Println("Starting...")
 	if err := http.ListenAndServe(":"+port, nil); err != nil {
 		log.Fatalf("Failed to start server: %v", err)
 	}
